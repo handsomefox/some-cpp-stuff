@@ -293,17 +293,26 @@ void task4() {
 	double time2 = array_abs_bench(200000);
 	double time3 = array_abs_bench(300000);
 	change_color(9);
-	cout << "\nT(200000/100000) = " << time2 / time1 << endl;
-	cout << "T(300000/100000) = " << time3 / time1 << endl;
+	double ttime2 = time2 / time1;
+	double ttime3 = time3 / time1;
+	cout << "\nT(200000/100000) = " << ttime2 << endl;
+	cout << "T(300000/100000) = " << ttime3 << endl;
 	change_color(10);
 	cout << "\nRelative benchmark:\n";
 	change_color(14);
 	double ops1 = array_rel_bench(100000);
 	double ops2 = array_rel_bench(200000);
 	double ops3 = array_rel_bench(300000);
+	double tops2 = ops2 / ops1;
+	double tops3 = ops3 / ops1;
 	change_color(9);
-	cout << "\nT(200000/100000) = " << ops2 / ops1 << endl;
-	cout << "T(300000/100000) = " << ops3 / ops1 << endl;
+	cout << "\nT(200000/100000) = " << tops2 << endl;
+	cout << "T(300000/100000) = " << tops3 << endl;
+	change_color(10);
+	cout << "\nDifference between absolute and relative:\n";
+	change_color(14);
+	cout << "\nDifference in T(200000/100000) = " << ttime2 * tops2 << endl;
+	cout << "Difference in T(300000/100000) = " << ttime3 * tops3 << endl;
 }
 
 int main() {
