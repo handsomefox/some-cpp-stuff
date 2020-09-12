@@ -4,117 +4,155 @@
 #include <omp.h>
 #include <time.h>
 #include <Windows.h>
+
 HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
-using namespace std;
 const unsigned int n = 100;
 
-DWORD basefreq() {
+DWORD Basefreq()
+{
 	DWORD value;
 	DWORD buffer[512];
+
 	RegGetValueA(HKEY_LOCAL_MACHINE, R"(HARDWARE\DESCRIPTION\System\CentralProcessor\0)", "~MHz", RRF_RT_REG_DWORD,
-		nullptr, &value, buffer);
+				 nullptr, &value, buffer);
+
 	return value;
 }
-DWORD cpufreq = basefreq();
 
-void change_color(const int color) {
+DWORD cpufreq = Basefreq();
+
+void ChangeConsoleColor(const int color)
+{
 	SetConsoleTextAttribute(hConsole, color);
 }
 
-void max_32_bit_time() {
+void Max32BitTime()
+{
 	const LONGLONG time = Int32x32To64(0x7FFFFFFF, 10000000) + 116444736000000000;
 	FILETIME ft;
 	SYSTEMTIME st;
+
 	ft.dwLowDateTime = static_cast<DWORD>(time);
 	ft.dwHighDateTime = time >> 32;
 	FileTimeToSystemTime(&ft, &st);
-	cout << st.wYear << "-"
-		<< setw(2) << setfill('0') << st.wMonth << "-"
-		<< setw(2) << setfill('0') << st.wDay << " "
-		<< setw(2) << setfill('0') << st.wHour << ":"
-		<< setw(2) << setfill('0') << st.wMinute << ":"
-		<< setw(2) << setfill('0') << st.wSecond << "."
-		<< setw(3) << setfill('0') << st.wMilliseconds << endl;
+
+	std::cout << st.wYear << "-"
+			  << std::setw(2) << std::setfill('0') << st.wMonth << "-"
+			  << std::setw(2) << std::setfill('0') << st.wDay << " "
+			  << std::setw(2) << std::setfill('0') << st.wHour << ":"
+			  << std::setw(2) << std::setfill('0') << st.wMinute << ":"
+			  << std::setw(2) << std::setfill('0') << st.wSecond << "."
+			  << std::setw(3) << std::setfill('0') << st.wMilliseconds << std::endl;
 }
 
-double time_accuracy() {
+double TimeAccuracy()
+{
 	time_t currtime, endtime;
 	time(&currtime);
 	time(&endtime);
-	while (endtime == currtime) {
-		for (unsigned int i = 0; i < n; i++)
+
+	while (endtime == currtime)
+	{
+		for (unsigned int i = 0; i < n; ++i)
 			time(&endtime);
 	}
+
 	return difftime(endtime, currtime); //sec
 }
 
-long clock_accuracy() {
+long ClockAccuracy()
+{
 	const clock_t start = clock();
 	clock_t end = start;
-	while (end == start) {
+
+	while (end == start)
+	{
 		for (unsigned int i = 0; i < n; ++i)
 			end = clock();
 	}
+
 	return end / CLOCKS_PER_SEC; //ms
 }
 
-long long filetime_accuracy() {
+long long FiletimeAccuracy()
+{
+	LARGE_INTEGER time1, time2;
 	FILETIME start, end;
+
 	GetSystemTimeAsFileTime(&start);
 	end = start;
-	LARGE_INTEGER time1, time2;
+
 	time1.HighPart = start.dwHighDateTime;
 	time1.LowPart = start.dwLowDateTime;
 	time2.HighPart = end.dwHighDateTime;
 	time2.LowPart = end.dwLowDateTime;
-	while (time2.QuadPart == time1.QuadPart) {
-		for (unsigned int i = 0; i < n; ++i) {
+
+	while (time2.QuadPart == time1.QuadPart)
+	{
+		for (unsigned int i = 0; i < n; ++i)
+		{
 			GetSystemTimeAsFileTime(&end);
 			time2.HighPart = end.dwHighDateTime;
 			time2.LowPart = end.dwLowDateTime;
 		}
 	}
+
 	return time2.QuadPart - time1.QuadPart; // 100ns
 }
 
-long long filetime_precise_accuracy() {
+long long FiletimePreciseAccuracy()
+{
+	LARGE_INTEGER time1, time2;
 	FILETIME start, end;
+
 	GetSystemTimePreciseAsFileTime(&start);
 	end = start;
-	LARGE_INTEGER time1, time2;
+
 	time1.HighPart = start.dwHighDateTime;
 	time1.LowPart = start.dwLowDateTime;
 	time2.HighPart = end.dwHighDateTime;
 	time2.LowPart = end.dwLowDateTime;
-	while (time2.QuadPart == time1.QuadPart) {
-		for (unsigned int i = 0; i < n; ++i) {
+
+	while (time2.QuadPart == time1.QuadPart)
+	{
+		for (unsigned int i = 0; i < n; ++i)
+		{
 			GetSystemTimePreciseAsFileTime(&end);
 			time2.HighPart = end.dwHighDateTime;
 			time2.LowPart = end.dwLowDateTime;
 		}
 	}
+
 	return time2.QuadPart - time1.QuadPart; // 100ns
 }
 
-int* generate_array(const int size) {
+int *GenerateArray(size_t size)
+{
 	srand(time(nullptr));
-	int* array = new int[size];
-	for (int i = 0; i < size; ++i)
+	int *array = new int[size];
+
+	for (size_t i = 0; i < size; ++i)
 		array[i] = 1 + rand() % 1000;
+
 	return array;
 }
 
-unsigned long tick_accuracy() {
+unsigned long TickAccuracy()
+{
 	const DWORD start = GetTickCount();
 	DWORD end = start;
-	while (end == start) {
+
+	while (end == start)
+	{
 		for (unsigned int i = 0; i < n; ++i)
 			end = GetTickCount();
 	}
+
 	return end - start; //ms
 }
 
-uint64_t rdtsc_clock_cycle_count() {
+uint64_t RdtscClockCycleCount()
+{
 	uint64_t c;
 	__asm {
 		cpuid
@@ -125,205 +163,256 @@ uint64_t rdtsc_clock_cycle_count() {
 	return c;
 }
 
-unsigned long long rdtsc_accuracy() {
-	const uint64_t start = rdtsc_clock_cycle_count();
+unsigned long long RdtscAccuracy()
+{
+	const uint64_t start = RdtscClockCycleCount();
 	uint64_t end = start;
-	while (end == start) {
+
+	while (end == start)
+	{
 		for (unsigned int i = 0; i < n; ++i)
-			end = rdtsc_clock_cycle_count();
+			end = RdtscClockCycleCount();
 	}
+
 	return end - start;
 }
 
-unsigned long long __rdtsc_accuracy() {
+unsigned long long __RdtscAccuracy()
+{
 	const uint64_t start = __rdtsc();
 	uint64_t end = start;
-	while (end == start) {
+
+	while (end == start)
+	{
 		for (unsigned int i = 0; i < n; ++i)
 			end = __rdtsc();
 	}
+
 	return end - start;
 }
 
-LONGLONG query_performance_counter_accuracy() {
+LONGLONG QpcAccuracy()
+{
 	LARGE_INTEGER start, end, freq, elapsed;
 	QueryPerformanceCounter(&start);
 	QueryPerformanceFrequency(&freq);
+
 	end = start;
-	while (end.QuadPart == start.QuadPart) {
+
+	while (end.QuadPart == start.QuadPart)
+	{
 		for (unsigned int i = 0; i < n; ++i)
 			QueryPerformanceCounter(&end);
 	}
+
 	elapsed.QuadPart = end.QuadPart - start.QuadPart;
 	elapsed.QuadPart *= 1000000;
 	elapsed.QuadPart /= freq.QuadPart;
+
 	return elapsed.QuadPart; //us
 }
 
-long long chrono_accuracy() {
-	const auto start = chrono::high_resolution_clock::now();
+long long ChronoAccuracy()
+{
+	const auto start = std::chrono::high_resolution_clock::now();
 	auto end = start;
-	while (end == start) {
+
+	while (end == start)
+	{
 		for (unsigned int i = 0; i < n; ++i)
-			end = chrono::high_resolution_clock::now();
+			end = std::chrono::high_resolution_clock::now();
 	}
-	const chrono::duration<double> duration = end - start;
-	const auto accuracy = chrono::duration_cast<chrono::nanoseconds>(duration);
+
+	const std::chrono::duration<double> duration = end - start;
+	const auto accuracy = std::chrono::duration_cast<std::chrono::nanoseconds>(duration);
+
 	return accuracy.count(); //ns
 }
 
-double omp_get_wtime_accuracy() {
+double OmpAccuracy()
+{
 	const double start = omp_get_wtime();
 	double end = start;
-	while (end == start) {
+
+	while (end == start)
+	{
 		for (unsigned int i = 0; i < n; ++i)
 			end = omp_get_wtime();
 	}
+
 	return (end - start) * 1000; //ms
 }
 
-void array_addition(const int addition_size) {
+void ArrayAddition(size_t size)
+{
 	srand(time(nullptr));
-	int* a = generate_array(1000);
+	int *array = GenerateArray(1000);
 	double sum = 0;
-	for (int i = 0; i < addition_size; ++i)
-		sum = sum + a[i];
-	delete a;
+
+	for (size_t i = 0; i < size; ++i)
+		sum = sum + array[i];
+
+	delete[] array;
 }
 
-void array_bench_rdtsc() {
+void ArrayRdtscBenchmark()
+{
 	const DWORD64 start = __rdtsc();
+
 	for (unsigned int i = 0; i < n; ++i)
-		array_addition(1000);
+		ArrayAddition(1000);
+
 	const DWORD64 end = __rdtsc();
-	cout << setfill(' ') << "__rdtsc() array addition " << setw(17) << n << " times took " << setw(11) << end - start << " ticks"
-		<< "(" << (end - start) / cpufreq << " us)\n";
+	std::cout << std::setfill(' ') << "__rdtsc() array addition " << std::setw(17) << n << " times took " << std::setw(11) << end - start << " ticks"
+			  << "(" << (end - start) / cpufreq << " us)\n";
 }
 
-void array_bench_qpc() {
+void ArrayQPCBenchmark()
+{
 	LARGE_INTEGER start, freq, elapsed, end;
 	QueryPerformanceCounter(&start);
 	QueryPerformanceFrequency(&freq);
-	for (unsigned int i = 0; i < n; ++i) {
-		array_addition(1000);
-	}
+
+	for (unsigned int i = 0; i < n; ++i)
+		ArrayAddition(1000);
+
 	QueryPerformanceCounter(&end);
+
 	elapsed.QuadPart = end.QuadPart - start.QuadPart;
 	elapsed.QuadPart *= 1000000;
 	elapsed.QuadPart /= freq.QuadPart;
-	cout << setfill(' ') << "GetPerformanceCounter() array addition " << n << " times took " << setw(11) << elapsed.QuadPart << " us\n"
-		<< endl;
+
+	std::cout << std::setfill(' ') << "GetPerformanceCounter() array addition " << n << " times took " << std::setw(11) << elapsed.QuadPart << " us\n"
+			  << std::endl;
 }
 
-double array_abs_bench(const int size) {
-	int* array = generate_array(size);
+double ArrayAbsoluteBenchmark(size_t size)
+{
+	int *array = GenerateArray(size);
 	double add = 0;
 	const double start = omp_get_wtime();
-	for (int i = 0; i < size; ++i) {
+
+	for (size_t i = 0; i < size; ++i)
 		add += array[i];
-	}
+
 	double end = omp_get_wtime();
 	double duration = end - start;
-	cout << "\nAdding " << size << " elements of array\n";
-	cout << "Sum = " << add << endl;
-	cout << "Time elapsed: " << duration << " seconds\n";
-	delete array;
+
+	std::cout << "\nAdding " << size << " elements of array\n";
+	std::cout << "Sum = " << add << std::endl;
+	std::cout << "Time elapsed: " << duration << " seconds\n";
+
+	delete[] array;
 	return duration;
 }
 
-int array_rel_bench(const int size) {
-	int* array = generate_array(size);
-	double add = 0;
-	int addition_cycles = 0;
-	double elapsed = 0;
+int ArrayRelativeBenchmark(size_t size)
+{
+	int *array = GenerateArray(size), cycles = 0;
+	double add = 0, elapsed = 0;
 	DWORD start = GetTickCount();
-	while (elapsed <= 2000) {
-		for (int i = 0; i < size; ++i) {
+
+	while (elapsed <= 2000)
+	{
+		for (size_t i = 0; i < size; ++i)
+		{
 			add += array[i];
 			elapsed = GetTickCount() - start;
 		}
-		addition_cycles++;
+		cycles++;
 	}
-	cout << "\nAdding " << size << " elements of array\n";
-	cout << "Max possible cycles in 2 sec: " << addition_cycles << endl;
-	delete array;
-	return addition_cycles;
+
+	std::cout << "\nAdding " << size << " elements of array\n";
+	std::cout << "Max possible cycles in 2 sec: " << cycles << std::endl;
+
+	delete[] array;
+	return cycles;
 }
-void task1() {
-	change_color(9);
-	cout << "Max possible 32-bit time = ";
-	max_32_bit_time();
+void Task1()
+{
+	ChangeConsoleColor(9);
+	std::cout << "Max possible 32-bit time = ";
+	Max32BitTime();
 }
 
-void task2() {
-	change_color(10);
-	cout << "\nTimer functions benchmark\n";
-	change_color(9);
-	cout << "\nFunction:" << setfill(' ') << setw(41) << "Accuracy:\n\n";
-	change_color(14);
-	cout << "Time()" << setfill(' ') << setw(40) << time_accuracy() << " sec\n";
-	cout << "Clock()" << setfill(' ') << setw(39) << clock_accuracy() << " ms\n";
-	cout << "GetSystemTimeAsFileTime()" << setfill(' ') << setw(21) << filetime_accuracy() * 100 << " ns\n";
-	cout << "GetSystemTimePreciseAsFileTime()" << setfill(' ') << setw(14) << filetime_precise_accuracy() * 100 << " ns\n";
-	cout << "GetTickCount()" << setfill(' ') << setw(32) << tick_accuracy() << " ms\n";
-	unsigned long long elapsed = rdtsc_accuracy();
-	cout << "Rdtsc()" << setfill(' ') << setw(39) << elapsed << " ticks(" << elapsed / (cpufreq * 1e3) << " ms)\n";
-	elapsed = __rdtsc_accuracy();
-	cout << "__Rdtsc()" << setfill(' ') << setw(37) << elapsed << " ticks(" << elapsed / (cpufreq * 1e3) << " ms)\n";
-	cout << "QueryPerformanceCounter()" << setfill(' ') << setw(21) << query_performance_counter_accuracy() << " us\n";
-	cout << "Chrono Class" << setfill(' ') << setw(34) << chrono_accuracy() << " ns\n";
-	cout << "omp_get_wtime()" << setfill(' ') << setw(31) << omp_get_wtime_accuracy() << " ms\n";
+void Task2()
+{
+	ChangeConsoleColor(10);
+	std::cout << "\nTimer functions benchmark\n";
+	ChangeConsoleColor(9);
+	std::cout << "\nFunction:" << std::setfill(' ') << std::setw(41) << "Accuracy:\n\n";
+	ChangeConsoleColor(14);
+	std::cout << "Time()" << std::setfill(' ') << std::setw(40) << TimeAccuracy() << " sec\n";
+	std::cout << "Clock()" << std::setfill(' ') << std::setw(39) << ClockAccuracy() << " ms\n";
+	std::cout << "GetSystemTimeAsFileTime()" << std::setfill(' ') << std::setw(21) << FiletimeAccuracy() * 100 << " ns\n";
+	std::cout << "GetSystemTimePreciseAsFileTime()" << std::setfill(' ') << std::setw(14) << FiletimePreciseAccuracy() * 100 << " ns\n";
+	std::cout << "GetTickCount()" << std::setfill(' ') << std::setw(32) << TickAccuracy() << " ms\n";
+
+	unsigned long long elapsed = RdtscAccuracy();
+	std::cout << "Rdtsc()" << std::setfill(' ') << std::setw(39) << elapsed << " ticks(" << elapsed / (cpufreq * 1e3) << " ms)\n";
+	elapsed = __RdtscAccuracy();
+	std::cout << "__Rdtsc()" << std::setfill(' ') << std::setw(37) << elapsed << " ticks(" << elapsed / (cpufreq * 1e3) << " ms)\n";
+
+	std::cout << "QueryPerformanceCounter()" << std::setfill(' ') << std::setw(21) << QpcAccuracy() << " us\n";
+	std::cout << "Chrono Class" << std::setfill(' ') << std::setw(34) << ChronoAccuracy() << " ns\n";
+	std::cout << "omp_get_wtime()" << std::setfill(' ') << std::setw(31) << OmpAccuracy() << " ms\n";
 }
 
-void task3() {
-	change_color(10);
-	cout << "\nArray benchmark\n";
-	change_color(14);
-	array_bench_rdtsc();
-	array_bench_qpc();
+void Task3()
+{
+	ChangeConsoleColor(10);
+	std::cout << "\nArray benchmark\n";
+	ChangeConsoleColor(14);
+	ArrayRdtscBenchmark();
+	ArrayQPCBenchmark();
 }
 
-void task4() {
-	change_color(10);
-	cout << "\nArray addition benchmark\n";
-	change_color(10);
-	cout << "\nAbsolute benchmark:\n";
-	change_color(14);
-	double time1 = array_abs_bench(100000);
-	double time2 = array_abs_bench(200000);
-	double time3 = array_abs_bench(300000);
-	change_color(9);
+void Task4()
+{
+	ChangeConsoleColor(10);
+
+	std::cout << "\nArray addition benchmark\n";
+	ChangeConsoleColor(10);
+	std::cout << "\nAbsolute benchmark:\n";
+	ChangeConsoleColor(14);
+	double time1 = ArrayAbsoluteBenchmark(100000);
+	double time2 = ArrayAbsoluteBenchmark(200000);
+	double time3 = ArrayAbsoluteBenchmark(300000);
+	ChangeConsoleColor(9);
 	double ttime2 = time2 / time1;
 	double ttime3 = time3 / time1;
-	cout << "\nT(200000/100000) = " << ttime2 << endl;
-	cout << "T(300000/100000) = " << ttime3 << endl;
-	change_color(10);
-	cout << "\nRelative benchmark:\n";
-	change_color(14);
-	double ops1 = array_rel_bench(100000);
-	double ops2 = array_rel_bench(200000);
-	double ops3 = array_rel_bench(300000);
+	std::cout << "\nT(200000/100000) = " << ttime2 << std::endl;
+	std::cout << "T(300000/100000) = " << ttime3 << std::endl;
+	ChangeConsoleColor(10);
+
+	std::cout << "\nRelative benchmark:\n";
+	ChangeConsoleColor(14);
+	double ops1 = ArrayRelativeBenchmark(100000);
+	double ops2 = ArrayRelativeBenchmark(200000);
+	double ops3 = ArrayRelativeBenchmark(300000);
 	double tops2 = ops2 / ops1;
 	double tops3 = ops3 / ops1;
-	change_color(9);
-	cout << "\nT(200000/100000) = " << tops2 << endl;
-	cout << "T(300000/100000) = " << tops3 << endl;
-	change_color(10);
-	cout << "\nDifference between absolute and relative:\n";
-	change_color(14);
-	cout << "\nDifference in T(200000/100000) = " << ttime2 * tops2 << endl;
-	cout << "Difference in T(300000/100000) = " << ttime3 * tops3 << endl;
+	ChangeConsoleColor(9);
+	std::cout << "\nT(200000/100000) = " << tops2 << std::endl;
+	std::cout << "T(300000/100000) = " << tops3 << std::endl;
+	ChangeConsoleColor(10);
+
+	std::cout << "\nDifference between absolute and relative:\n";
+	ChangeConsoleColor(14);
+	std::cout << "\nDifference in T(200000/100000) = " << ttime2 * tops2 << std::endl;
+	std::cout << "Difference in T(300000/100000) = " << ttime3 * tops3 << std::endl;
 }
 
-int main() {
-	change_color(10);
-	cout << "Base CPU Freq = " << cpufreq << " Mhz" << endl;
-	task1();
-	task2();
-	task3();
-	task4();
-	cout << "\n";
-	change_color(15);
+int main()
+{
+	ChangeConsoleColor(10);
+	std::cout << "Base CPU Freq = " << cpufreq << " Mhz" << std::endl;
+	Task1();
+	Task2();
+	Task3();
+	Task4();
+	std::cout << "\n";
+	ChangeConsoleColor(15);
 	system("PAUSE");
 	return 0;
 }
