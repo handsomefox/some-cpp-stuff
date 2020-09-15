@@ -45,7 +45,7 @@ long ClockAccuracy() {
 			end = clock();
 	}
 
-	return end / CLOCKS_PER_SEC; // ms
+	return end - start / CLOCKS_PER_SEC; // ms
 }
 long long FiletimeAccuracy() {
 	LARGE_INTEGER time1, time2;
@@ -168,11 +168,9 @@ long long ChronoAccuracy() {
 		for (unsigned int i = 0; i < n; ++i)
 			end = std::chrono::high_resolution_clock::now();
 	}
-
 	const std::chrono::duration<double> duration = end - start;
-	const auto accuracy = std::chrono::duration_cast<std::chrono::nanoseconds>(duration);
 
-	return accuracy.count(); // ns
+	return std::chrono::duration_cast<std::chrono::nanoseconds>(duration).count(); // ns
 }
 double OmpAccuracy() {
 	const double start = omp_get_wtime();
@@ -191,6 +189,7 @@ void ArrayAddition(size_t size) {
 
 	for (size_t i = 0; i < size; ++i)
 		sum = sum + array[i];
+	delete[] array;
 }
 void ArrayRdtscBenchmark() {
 	const DWORD64 start = __rdtsc();
@@ -230,7 +229,7 @@ double ArrayAbsoluteBenchmark(size_t size) {
 	std::cout << "\nAdding " << size << " elements of array\n";
 	std::cout << "Sum = " << add << std::endl;
 	std::cout << "Time elapsed: " << duration << " seconds\n";
-
+	delete[] array;
 	return duration;
 }
 int ArrayRelativeBenchmark(size_t size) {
@@ -248,7 +247,7 @@ int ArrayRelativeBenchmark(size_t size) {
 	}
 	std::cout << "\nAdding " << size << " elements of array\n";
 	std::cout << "Max possible cycles in 2 sec: " << cycles << std::endl;
-
+	delete[] array;
 	return cycles;
 }
 void Task1() {
