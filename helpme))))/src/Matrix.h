@@ -14,6 +14,7 @@ public:
 	}
 
 	T** generate() {
+		srand(time(0));
 		for (size_t i = 0; i < m_Size; ++i)
 			for (size_t j = 0; j < m_Size; ++j)
 				m_Matrix[i][j] = 1 + rand() % 10;
@@ -70,6 +71,7 @@ double MatrixBenchmark(Matrix<T>& mt1, Matrix<T>& mt2, size_t const& size) {
 	return end - start;
 }
 template <typename T> T** CreateFilledMatrix(T**& matrix, size_t const& size) {
+	srand(time(0));
 	matrix = new T* [size];
 	for (size_t i = 0; i < size; ++i)
 		matrix[i] = new T[size];
