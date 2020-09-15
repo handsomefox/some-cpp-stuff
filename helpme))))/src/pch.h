@@ -6,4 +6,3 @@
 #include <iostream>
 #include <omp.h>
 #include <time.h>
-#define TYPE int
