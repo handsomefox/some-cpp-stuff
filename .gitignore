@@ -30,4 +30,8 @@
 *.exe
 *.out
 *.app
+
+# VS stuff
 .vscode/settings.json
+/bin
+/.vs/helpme))))/v16
