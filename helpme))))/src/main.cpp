@@ -324,7 +324,7 @@ void Task5() {
 	ChangeConsoleColor(10);
 	std::cout << "\nMatrix multiplication benchmark\n";
 	std::cout << "--------------------------------\n";
-	while (matrixSize <= 2048){
+	while (matrixSize <= 2048) {
 		ChangeConsoleColor(14);
 		std::cout << "\nSize = " << matrixSize << std::endl;
 		Matrix<int> object1(matrixSize);
