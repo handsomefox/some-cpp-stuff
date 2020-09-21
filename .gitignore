@@ -32,6 +32,11 @@
 *.app
 
 # VS stuff
+/.vscode/c_cpp_properties.json
 .vscode/settings.json
 /bin
 /.vs/helpme))))/v16
+parp_lab.sln
+parp_lab.vcxproj.user
+parp_lab.vcxproj
+parp_lab.vcxproj.filters
