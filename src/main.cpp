@@ -375,8 +375,6 @@ void Task5() {
     std::cout << "Matrix multiplication without objects took: "
               << MatrixBenchmark(matrix1, matrix2, matrixSize) << " sec\n\n";
     matrixSize *= 2;
-    delete[] matrix1;
-    delete[] matrix2;
   }
 }
 void Task9() {
