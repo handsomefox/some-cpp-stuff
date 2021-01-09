@@ -54,7 +54,8 @@ template <typename T> void multiply_matrix(T **&mt1, T **&mt2, size_t &size) {
       for (size_t j = 0; j < size; ++j)
         res[i][j] = mt1[i][k] * mt2[k][j];
 }
-template <typename T> double matrix_benchmark(T **&mt1, T **&mt2, size_t &size) {
+template <typename T>
+double matrix_benchmark(T **&mt1, T **&mt2, size_t &size) {
   double start, end;
   start = omp_get_wtime();
   multiply_matrix(mt1, mt2, size);

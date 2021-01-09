@@ -3,11 +3,11 @@
 #define NOMINMAX
 #include <Windows.h>
 #include <chrono>
+#include <ctime>
 #include <iomanip>
 #include <iostream>
 #include <omp.h>
 #include <powrprof.h>
-#include <ctime>
 #include <vector>
 #pragma comment(lib, "Powrprof.lib")
 typedef struct _PROCESSOR_POWER_INFORMATION {
