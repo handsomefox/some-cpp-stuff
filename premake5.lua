@@ -1,7 +1,7 @@
-workspace "some-cpp-stuff"
+workspace "uni_cpp_project"
    configurations { "Debug", "Release" }
 
-project "some-cpp-stuff"
+project "uni_cpp_project"
    kind "ConsoleApp"
    language "C++"
    cppdialect "C++17"
